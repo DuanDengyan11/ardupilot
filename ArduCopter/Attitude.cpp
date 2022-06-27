@@ -61,7 +61,9 @@ float Copter::get_pilot_desired_climb_rate(float throttle_control)
     g.throttle_deadzone = constrain_int16(g.throttle_deadzone, 0, 400);
 
     float desired_rate = 0.0f;
-    const float mid_stick = get_throttle_mid();
+    // const float mid_stick = get_throttle_mid();
+    // 纵列二架机悬停位置大概在60%油门。中立点设为600；
+    const float mid_stick = g.throttle_midpos;
     const float deadband_top = mid_stick + g.throttle_deadzone;
     const float deadband_bottom = mid_stick - g.throttle_deadzone;
 

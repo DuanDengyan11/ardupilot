@@ -141,8 +141,8 @@ private:
     RotorControlMode _control_mode = ROTOR_CONTROL_MODE_DISABLED;   // motor control mode, Passthrough or Setpoint
     float           _desired_speed;               // latest desired rotor speed from pilot
     float           _control_output;              // latest logic controlled output
-    float           _rotor_ramp_output;           // scalar used to ramp rotor speed between _rsc_idle_output and full speed (0.0-1.0f)
-    float           _rotor_runup_output;          // scalar used to store status of rotor run-up time (0.0-1.0f)
+    float           _rotor_ramp_output;           // scalar used to ramp rotor speed between _rsc_idle_output and full speed (0.0-1.0f) 标量用于在_rsc_idle_输出和全速（0.0-1.0f）之间提升转子速度 
+    float           _rotor_runup_output;          // scalar used to store status of rotor run-up time (0.0-1.0f) 用于存储转子启动时间（0.0-1.0f）状态的标量 
     bool            _runup_complete;              // flag for determining if runup is complete
     float           _thrcrv_poly[4][4];           // spline polynomials for throttle curve interpolation
     float           _collective_in;               // collective in for throttle curve calculation, range 0-1.0f

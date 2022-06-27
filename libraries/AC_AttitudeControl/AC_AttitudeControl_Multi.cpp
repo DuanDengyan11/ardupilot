@@ -248,7 +248,7 @@ AC_AttitudeControl_Multi::AC_AttitudeControl_Multi(AP_AHRS_View &ahrs, const AP_
 // Update Alt_Hold angle maximum
 void AC_AttitudeControl_Multi::update_althold_lean_angle_max(float throttle_in)
 {
-    // calc maximum tilt angle based on throttle
+    // calc maximum tilt angle based on throttle 基于节气门计算最大倾斜角 
     float thr_max = _motors_multi.get_throttle_thrust_max();
 
     // divide by zero check

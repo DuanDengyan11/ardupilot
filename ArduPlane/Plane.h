@@ -786,8 +786,8 @@ private:
     uint32_t rudder_arm_timer;
 
 #if HAL_QUADPLANE_ENABLED
-    // support for quadcopter-plane
-    QuadPlane quadplane{ahrs};
+    // support for quadcopter-plane quadcopter-plane支持
+    QuadPlane quadplane{ahrs}; //ahrs惯性导航系统EKF
 #endif
 
     // support for transmitter tuning

@@ -36,6 +36,7 @@ using namespace ChibiOS;
 extern AP_IOMCU iomcu;
 #endif
 
+extern const AP_HAL::HAL& hal;
 
 // GPIO pin table from hwdef.dat
 static struct gpio_entry {
@@ -63,7 +64,7 @@ static struct gpio_entry *gpio_by_pin_num(uint8_t pin_num, bool check_enabled=tr
             }
             return &_gpio_tab[i];
         }
-    }
+    }                               
     return NULL;
 }
 
@@ -276,8 +277,6 @@ AP_HAL::DigitalSource* GPIO::channel(uint16_t pin)
     }
     return new DigitalSource(g->pal_line);
 }
-
-extern const AP_HAL::HAL& hal;
 
 /*
    Attach an interrupt handler to a GPIO pin number. The pin number
@@ -505,6 +504,7 @@ bool GPIO::valid_pin(uint8_t pin) const
         return true;
     }
 #endif
+    // hal.console->printf("%u \n", gpio_by_pin_num(pin) != nullptr);
     return gpio_by_pin_num(pin) != nullptr;
 }
 

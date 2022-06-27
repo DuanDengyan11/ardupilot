@@ -1068,7 +1068,7 @@ public:
     // minimum amount of time (in microseconds) that must remain in
     // the main scheduler loop before we are allowed to send any
     // mavlink messages.  We want to prioritise the main flight
-    // control loop over communications
+    // control loop over communications 在允许发送任何mavlink消息之前，必须在主调度程序循环中保留的最短时间（以微秒为单位）。我们想优先考虑主飞行控制回路而不是通信
     virtual uint16_t min_loop_time_remaining_for_message_send_us() const {
         return 200;
     }
@@ -1131,7 +1131,7 @@ protected:
 
     GCS_MAVLINK_Parameters chan_parameters[MAVLINK_COMM_NUM_BUFFERS];
     uint8_t _num_gcs;
-    GCS_MAVLINK *_chan[MAVLINK_COMM_NUM_BUFFERS];
+    GCS_MAVLINK *_chan[MAVLINK_COMM_NUM_BUFFERS]; //对于mavlink我们最多只能有5个接口。
 
 private:
 

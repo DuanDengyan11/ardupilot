@@ -24,10 +24,11 @@
 #include <AP_SerialManager/AP_SerialManager.h>
 #include <AP_BoardConfig/AP_BoardConfig.h>
 
-void setup();
-void loop();
+// 此文件最后AP_HAL_MAIN里，会调用setup和loop函数
+void setup();// 大多数库中都定义了此函数。此函数在启动时只调用一次。HAL中的main（）函数调用此函数。 
+void loop();// 大多数库中都定义了此函数。该函数由HAL中的main函数调用。主要功能实现。 
 
-const AP_HAL::HAL& hal = AP_HAL::get_HAL();
+const AP_HAL::HAL& hal = AP_HAL::get_HAL();// 声明“hal”引用变量。这个变量指向Ap_HAL:：HAL类的对象。这里，AP_HAL是库，HAL是库中的一个类。此参考变量可用于访问特定于硬件的功能 
 
 static AP_BoardConfig board_config;
 
@@ -63,21 +64,21 @@ void setup()
 
 
 /*
-  print a int32_t lat/long in decimal degrees
+  print a int32_t lat/long in decimal degrees 以十进制度数打印int32_t lat/long 
  */
 void print_latlon(AP_HAL::BetterStream *s, int32_t lat_or_lon);
 void print_latlon(AP_HAL::BetterStream *s, int32_t lat_or_lon)
 {
     int32_t dec_portion, frac_portion;
-    int32_t abs_lat_or_lon = labs(lat_or_lon);
+    int32_t abs_lat_or_lon = labs(lat_or_lon); //返回长整型参数n的绝对值 
 
-    // extract decimal portion (special handling of negative numbers to ensure we round towards zero)
-    dec_portion = abs_lat_or_lon / 10000000UL;
+    // extract decimal portion (special handling of negative numbers to ensure we round towards zero) 提取整数部分（对负数进行特殊处理，以确保我们向零进位） 
+    dec_portion = abs_lat_or_lon / 10000000UL; //取整
 
     // extract fractional portion
-    frac_portion = abs_lat_or_lon - dec_portion*10000000UL;
+    frac_portion = abs_lat_or_lon - dec_portion*10000000UL; //取余
 
-    // print output including the minus sign
+    // print output including the minus si gn 负数处理
     if( lat_or_lon < 0 ) {
         s->printf("-");
     }
@@ -122,5 +123,5 @@ void loop()
     hal.scheduler->delay(10);
 }
 
-// Register above functions in HAL board level
+// Register above functions in HAL board level每一个sketch最底部，都有一个“AP_HAL_MAIN();”指令，它是一个HAL宏，用于定义一个C++ main函数，整个程序的入口
 AP_HAL_MAIN();

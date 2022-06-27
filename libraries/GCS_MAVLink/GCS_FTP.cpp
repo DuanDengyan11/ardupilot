@@ -99,7 +99,7 @@ void GCS_MAVLINK::handle_file_transfer_protocol(const mavlink_message_t &msg) {
 void GCS_MAVLINK::send_ftp_replies(void)
 {
     /*
-      provide same banner we would give with old param download
+      provide same banner we would give with old param download  提供与旧param下载相同的横幅 
     */
     if (ftp.need_banner_send_mask & (1U<<chan)) {
         ftp.need_banner_send_mask &= ~(1U<<chan);

@@ -398,7 +398,6 @@ protected:
 
     // get earth-frame Z-axis acceleration with gravity removed in cm/s/s with +ve being up
     float get_z_accel_cmss() const { return -(_ahrs.get_accel_ef_blended().z + GRAVITY_MSS) * 100.0f; }
-
     // lean_angles_to_accel - convert roll, pitch lean angles to lat/lon frame accelerations in cm/s/s
     void accel_to_lean_angles(float accel_x_cmss, float accel_y_cmss, float& roll_target, float& pitch_target) const;
 
@@ -441,9 +440,9 @@ protected:
     float       _vel_max_up_cms;        // max climb rate in cm/s used for kinematic shaping
     float       _vel_max_down_cms;      // max descent rate in cm/s used for kinematic shaping
     float       _accel_max_xy_cmss;     // max horizontal acceleration in cm/s/s used for kinematic shaping
-    float       _accel_max_z_cmss;      // max vertical acceleration in cm/s/s used for kinematic shaping
+    float       _accel_max_z_cmss;      // max vertical acceleration in cm/s/s used for kinematic shaping 用于运动整形的最大垂直加速度，默认值为250 cm/s/s
     float       _jerk_max_xy_cmsss;       // Jerk limit of the xy kinematic path generation in cm/s^3 used to determine how quickly the aircraft varies the acceleration target
-    float       _jerk_max_z_cmsss;        // Jerk limit of the z kinematic path generation in cm/s^3 used to determine how quickly the aircraft varies the acceleration target
+    float       _jerk_max_z_cmsss;        // Jerk limit of the z kinematic path generation in cm/s^3 used to determine how quickly the aircraft varies the acceleration target  z运动轨迹生成的急动极限，单位为cm/s^3，用于确定飞机改变加速度目标的速度, 默认值为500 cm/s/s
     float       _vel_z_control_ratio = 2.0f;    // confidence that we have control in the vertical axis
 
     // output from controller
@@ -458,7 +457,7 @@ protected:
     Vector3f    _vel_target;            // velocity target in NEU cm/s calculated by pos_to_rate step
     Vector3f    _accel_desired;         // desired acceleration in NEU cm/s/s (feed forward)
     Vector3f    _accel_target;          // acceleration target in NEU cm/s/s
-    Vector3f    _limit_vector;          // the direction that the position controller is limited, zero when not limited
+    Vector3f    _limit_vector;          // the direction that the position controller is limited, zero when not limited 位置控制器受限的方向，不受限时为零 
 
     float       _pos_offset_target_z;   // vertical position offset target, frame NEU in cm relative to the EKF origin
     float       _pos_offset_z;          // vertical position offset, frame NEU in cm relative to the EKF origin
@@ -470,7 +469,7 @@ protected:
     uint32_t    _ekf_z_reset_ms;        // system time of last recorded ekf altitude reset
 
     // high vibration handling
-    bool        _vibe_comp_enabled;     // true when high vibration compensation is on
+    bool        _vibe_comp_enabled;     // true when high vibration compensation is on  启用高振动补偿时为真 
 
     // angle max override, if zero then use ANGLE_MAX parameter
     float       _angle_max_override_cd;

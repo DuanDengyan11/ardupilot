@@ -84,7 +84,7 @@ public:
     bool has_flybar() const  override { return AP_MOTORS_HELI_NOFLYBAR; }
 
     // supports_yaw_passthrought - returns true if we support yaw passthrough
-    bool supports_yaw_passthrough() const  override { return false; }
+    bool supports_yaw_passthrough() const  override { return true; }
 
     // servo_test - move servos through full range of movement
     void servo_test() override;

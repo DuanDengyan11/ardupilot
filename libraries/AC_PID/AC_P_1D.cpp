@@ -27,7 +27,7 @@ AC_P_1D::AC_P_1D(float initial_p, float dt) :
 float AC_P_1D::update_all(float &target, float measurement)
 {
     // calculate distance _error
-    _error = target - measurement;
+    _error = target - measurement; //误差
 
     if (is_negative(_error_min) && (_error < _error_min)) {
         _error = _error_min;

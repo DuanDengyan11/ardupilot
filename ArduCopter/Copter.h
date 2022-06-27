@@ -338,7 +338,7 @@ private:
             uint8_t pre_arm_check           : 1; // 4       // true if all pre-arm checks (rc, accel calibration, gps lock) have been performed
             uint8_t auto_armed              : 1; // 5       // stops auto missions from beginning until throttle is raised
             uint8_t logging_started         : 1; // 6       // true if logging has started
-            uint8_t land_complete           : 1; // 7       // true if we have detected a landing
+            uint8_t land_complete           : 1; // 7       // true if we have detected a landing降落为真
             uint8_t new_radio_frame         : 1; // 8       // Set true if we have new PWM data to act on from the Radio
             uint8_t usb_connected_unused    : 1; // 9       // UNUSED
             uint8_t rc_receiver_present     : 1; // 10      // true if we have an rc receiver present (i.e. if we've ever received an update
@@ -996,6 +996,7 @@ private:
 
 public:
     void failsafe_check();      // failsafe.cpp
+    float get_accel_tz(){const Vector3f &accel_target =  pos_control->get_accel_target_cmss(); return accel_target.z;};
 };
 
 extern Copter copter;

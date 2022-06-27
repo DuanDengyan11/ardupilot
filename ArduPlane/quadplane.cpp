@@ -76,7 +76,7 @@ const AP_Param::GroupInfo QuadPlane::var_info[] = {
 
     // @Param: RC_SPEED
     // @DisplayName: RC output speed in Hz
-    // @Description: This is the PWM refresh rate in Hz for QuadPlane quad motors
+    // @Description: This is the PWM refresh rate in Hz for QuadPlane quad motors pwm刷新率
     // @Units: Hz
     // @Range: 50 500
     // @Increment: 10
@@ -539,7 +539,7 @@ const AP_Param::ConversionInfo q_conversion_table[] = {
 QuadPlane::QuadPlane(AP_AHRS &_ahrs) :
     ahrs(_ahrs)
 {
-    AP_Param::setup_object_defaults(this, var_info);
+    AP_Param::setup_object_defaults(this, var_info);  //设置参数
     AP_Param::setup_object_defaults(this, var_info2);
 
     if (_singleton != nullptr) {
@@ -553,23 +553,23 @@ QuadPlane::QuadPlane(AP_AHRS &_ahrs) :
 void QuadPlane::setup_default_channels(uint8_t num_motors)
 {
     for (uint8_t i=0; i<num_motors; i++) {
-        SRV_Channels::set_aux_channel_default(SRV_Channels::get_motor_function(i), CH_5+i);
+        SRV_Channels::set_aux_channel_default(SRV_Channels::get_motor_function(i), CH_5+i);//为什么从CH_5开始，前面的是舵机？
     }
 }
     
 
-bool QuadPlane::setup(void)
+bool QuadPlane::setup(void)  //init_ardupilot会调用
 {
-    if (initialised) {
+    if (initialised) { //是否初始化
         return true;
     }
     if (!enable || hal.util->get_soft_armed()) {
         return false;
     }
-    float loop_delta_t = 1.0 / plane.scheduler.get_loop_rate_hz();
+    float loop_delta_t = 1.0 / plane.scheduler.get_loop_rate_hz(); //loop间隔时间
 
     /*
-      cope with upgrade from old AP_Motors values for frame_class
+      cope with upgrade from old AP_Motors values for frame_class 新旧版本差异
      */
     AP_Int8 old_class;
     const AP_Param::ConversionInfo cinfo { Parameters::k_param_quadplane, FRAME_CLASS_OLD_IDX, AP_PARAM_INT8, nullptr };
@@ -598,7 +598,7 @@ bool QuadPlane::setup(void)
     
     if (hal.util->available_memory() <
         4096 + sizeof(*motors) + sizeof(*attitude_control) + sizeof(*pos_control) + sizeof(*wp_nav) + sizeof(*ahrs_view) + sizeof(*loiter_nav) + sizeof(*weathervane)) {
-        AP_BoardConfig::config_error("Not enough memory for quadplane");
+        AP_BoardConfig::config_error("Not enough memory for quadplane"); //内存不足
     }
 
     /*
@@ -635,7 +635,7 @@ bool QuadPlane::setup(void)
         AP_BoardConfig::config_error("Unsupported Q_FRAME_CLASS %u", (unsigned int)(frame_class.get()));
     }
 
-    // Make sure not both a tailsiter and tiltrotor
+    // Make sure not both a tailsiter and tiltrotor 确保不要同时使用尾座式和倾转旋翼
     if ((tailsitter.enable > 0) && (tiltrotor.enable > 0)) {
         AP_BoardConfig::config_error("set TAILSIT_ENABLE 0 or TILT_ENABLE 0");
     }
@@ -669,30 +669,30 @@ bool QuadPlane::setup(void)
 
     AP_Param::load_object_from_eeprom(motors, motors_var_info);
 
-    // create the attitude view used by the VTOL code
+    // create the attitude view used by the VTOL code ahrs视角
     ahrs_view = ahrs.create_view((tailsitter.enable > 0) ? ROTATION_PITCH_90 : ROTATION_NONE, ahrs_trim_pitch);
     if (ahrs_view == nullptr) {
         AP_BoardConfig::allocation_error("ahrs_view");
     }
 
-    attitude_control = new AC_AttitudeControl_TS(*ahrs_view, aparm, *motors, loop_delta_t);
+    attitude_control = new AC_AttitudeControl_TS(*ahrs_view, aparm, *motors, loop_delta_t); //姿态控制
     if (!attitude_control) {
         AP_BoardConfig::allocation_error("attitude_control");
     }
 
     AP_Param::load_object_from_eeprom(attitude_control, attitude_control->var_info);
-    pos_control = new AC_PosControl(*ahrs_view, inertial_nav, *motors, *attitude_control, loop_delta_t);
+    pos_control = new AC_PosControl(*ahrs_view, inertial_nav, *motors, *attitude_control, loop_delta_t); //位置控制
     if (!pos_control) {
         AP_BoardConfig::allocation_error("pos_control");
     }
     AP_Param::load_object_from_eeprom(pos_control, pos_control->var_info);
-    wp_nav = new AC_WPNav(inertial_nav, *ahrs_view, *pos_control, *attitude_control);
+    wp_nav = new AC_WPNav(inertial_nav, *ahrs_view, *pos_control, *attitude_control);//航点
     if (!wp_nav) {
         AP_BoardConfig::allocation_error("wp_nav");
     }
     AP_Param::load_object_from_eeprom(wp_nav, wp_nav->var_info);
 
-    loiter_nav = new AC_Loiter(inertial_nav, *ahrs_view, *pos_control, *attitude_control);
+    loiter_nav = new AC_Loiter(inertial_nav, *ahrs_view, *pos_control, *attitude_control);//loiter
     if (!loiter_nav) {
         AP_BoardConfig::allocation_error("loiter_nav");
     }
@@ -704,7 +704,7 @@ bool QuadPlane::setup(void)
     }
     AP_Param::load_object_from_eeprom(weathervane, weathervane->var_info);
 
-    motors->init(frame_class, frame_type);
+    motors->init(frame_class, frame_type); //初始化 里面有操纵分配
     motors->update_throttle_range();
     motors->set_update_rate(rc_speed);
     attitude_control->parameter_sanity_check();
@@ -1666,7 +1666,7 @@ void SLT_Transition::VTOL_update()
 /*
   update motor output for quadplane
  */
-void QuadPlane::update(void)
+void QuadPlane::update(void)  // set_servos里会调用
 {
     if (!setup()) {
         return;

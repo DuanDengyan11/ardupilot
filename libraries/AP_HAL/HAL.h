@@ -20,25 +20,25 @@ class AP_Param;
 
 class AP_HAL::HAL {
 public:
-    HAL(AP_HAL::UARTDriver* _uartA, // console
-        AP_HAL::UARTDriver* _uartB, // 1st GPS
-        AP_HAL::UARTDriver* _uartC, // telem1
-        AP_HAL::UARTDriver* _uartD, // telem2
-        AP_HAL::UARTDriver* _uartE, // 2nd GPS
+    HAL(AP_HAL::UARTDriver* _uartA, // console 终端  对应serial0
+        AP_HAL::UARTDriver* _uartB, // 1st GPS gps  对应serial3
+        AP_HAL::UARTDriver* _uartC, // telem1  数传1 对应serial1
+        AP_HAL::UARTDriver* _uartD, // telem2  数传2 对应serial2
+        AP_HAL::UARTDriver* _uartE, // 2nd GPS 第2个gps 对应serial4
         AP_HAL::UARTDriver* _uartF, // extra1
         AP_HAL::UARTDriver* _uartG, // extra2
         AP_HAL::UARTDriver* _uartH, // extra3
         AP_HAL::UARTDriver* _uartI, // extra4
         AP_HAL::UARTDriver* _uartJ, // extra5
-        AP_HAL::I2CDeviceManager* _i2c_mgr,
-        AP_HAL::SPIDeviceManager* _spi,
-        AP_HAL::QSPIDeviceManager* _qspi,
-        AP_HAL::AnalogIn*   _analogin,
-        AP_HAL::Storage*    _storage,
-        AP_HAL::UARTDriver* _console,
-        AP_HAL::GPIO*       _gpio,
-        AP_HAL::RCInput*    _rcin,
-        AP_HAL::RCOutput*   _rcout,
+        AP_HAL::I2CDeviceManager* _i2c_mgr,  //i2c
+        AP_HAL::SPIDeviceManager* _spi,      //spi
+        AP_HAL::QSPIDeviceManager* _qspi,    //qspi
+        AP_HAL::AnalogIn*   _analogin, //模拟输入
+        AP_HAL::Storage*    _storage,  //存储
+        AP_HAL::UARTDriver* _console,  //终端串口
+        AP_HAL::GPIO*       _gpio,    //gpio
+        AP_HAL::RCInput*    _rcin,    //rcin
+        AP_HAL::RCOutput*   _rcout,   //rcout
         AP_HAL::Scheduler*  _scheduler,
         AP_HAL::Util*       _util,
         AP_HAL::OpticalFlow*_opticalflow,
@@ -149,7 +149,7 @@ public:
     // access to serial ports using SERIALn_ numbering
     UARTDriver* serial(uint8_t sernum) const;
 
-    static constexpr uint8_t num_serial = 10;
+    static constexpr uint8_t num_serial = 10;  //10个串口
 
 #if AP_SIM_ENABLED && CONFIG_HAL_BOARD != HAL_BOARD_SITL
     AP_HAL::SIMState *simstate;

@@ -81,7 +81,7 @@ float AC_PID_Basic::update_all(float target, float measurement, bool limit)
 //  the integral is then updated based on the setting of the limit flag
 float AC_PID_Basic::update_all(float target, float measurement, bool limit_neg, bool limit_pos)
 {
-    // don't process inf or NaN
+    // don't process inf or NaN 若值为inf或nan，立即返回，并报错Internal_error
     if (!isfinite(target) || isnan(target) ||
         !isfinite(measurement) || isnan(measurement)) {
         INTERNAL_ERROR(AP_InternalError::error_t::invalid_arg_or_result);
@@ -90,7 +90,7 @@ float AC_PID_Basic::update_all(float target, float measurement, bool limit_neg, 
 
     _target = target;
 
-    // reset input filter to value received
+    // reset input filter to value received 将输入过滤器重置为接收到的值 
     if (_reset_filter) {
         _reset_filter = false;
         _error = _target - measurement;
@@ -99,7 +99,7 @@ float AC_PID_Basic::update_all(float target, float measurement, bool limit_neg, 
         float error_last = _error;
         _error += get_filt_E_alpha() * ((_target - measurement) - _error);
 
-        // calculate and filter derivative
+        // calculate and filter derivative  加上滤波
         if (is_positive(_dt)) {
             float derivative = (_error - error_last) / _dt;
             _derivative += get_filt_D_alpha() * (derivative - _derivative);

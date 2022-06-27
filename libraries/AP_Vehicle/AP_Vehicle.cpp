@@ -133,11 +133,11 @@ void AP_Vehicle::setup()
     // diagnostic output during boot process.  We have to initialise
     // the GCS singleton first as it sets the global mavlink system ID
     // which may get used very early on.
-    gcs().init();
+    gcs().init();  //mavlink_system.sysid = sysid_this_mav(); 引入sys_id，在parameter.cpp里完成写入
 
     // initialise serial ports
-    serial_manager.init();
-    gcs().setup_console();
+    serial_manager.init();  //对串口进行初始化
+    gcs().setup_console(); // 尽早设置第一个端口，以允许BoardConfig报告错误。
 
     // Register scheduler_delay_cb, which will run anytime you have
     // more than 5ms remaining in your call to hal.scheduler->delay

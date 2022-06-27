@@ -425,7 +425,7 @@ void Mode::get_pilot_desired_lean_angles(float &roll_out, float &pitch_out, floa
         pitch_out *= ratio;
     }
 
-    // do lateral tilt to euler roll conversion
+    // do lateral tilt to euler roll conversion 进行横向倾斜到euler滚动转换 
     roll_out = (18000/M_PI) * atanf(cosf(pitch_out*(M_PI/18000))*tanf(roll_out*(M_PI/18000)));
 
     // roll_out and pitch_out are returned
@@ -540,6 +540,9 @@ void Mode::make_safe_ground_handling(bool force_throttle_unlimited)
         // while transitioning though active states continue to operate normally
         break;
     }
+
+    pos_control->relax_velocity_controller_xy();
+    pos_control->update_xy_controller();
 
     pos_control->relax_z_controller(0.0f);   // forces throttle output to decay to zero
     pos_control->update_z_controller();

@@ -37,15 +37,16 @@ void loop(void) {
     //get the average voltage reading
     float v  = chan->voltage_average();    //note:the voltage value is divided into 1024 segments    
     //start a new line after going through the 16 pins
-    if (pin == 0) {
-        hal.console->printf("\n");
-    }
+    // if (pin == 0) {
+    //     hal.console->printf("\n");
+    // }
     //print the voltage value(3 decimal places) alongside the pin number 
-    hal.console->printf("[%u %.3f] ",
+    hal.console->printf("[%u %.3f] \n",
               (unsigned)pin, (double)v);
     //increment the pin number
-    pin = (pin+1) % 16;
+    // pin = (pin+1) % 16;
     //set pin corresponding to the new pin value
+    pin = 14;
     IGNORE_RETURN(chan->set_pin(pin));
     //give a delay of 100ms
     hal.scheduler->delay(100);

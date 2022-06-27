@@ -103,20 +103,22 @@ void Mode::_TakeOff::do_pilot_takeoff(float& pilot_climb_rate_cm)
 void Mode::auto_takeoff_run()
 {
     // if not armed set throttle to zero and exit immediately
+    // 正常都是先解锁，再进入guided模式，auto_armed也为1，下面的if一般不会运行
     if (!motors->armed() || !copter.ap.auto_armed) {
         // do not spool down tradheli when on the ground with motor interlock enabled
+        // get_interlock 电机在运行返回true，没有运行返回false
         make_safe_ground_handling(copter.is_tradheli() && motors->get_interlock());
         return;
     }
 
-    // get terrain offset
+    // get terrain offset 地形偏移
     float terr_offset = 0.0f;
     if (auto_takeoff_terrain_alt && !wp_nav->get_terrain_offset(terr_offset)) {
         gcs().send_text(MAV_SEVERITY_CRITICAL, "auto takeoff: failed to get terrain offset");
         return;
     }
 
-    // set motors to full range
+    // set motors to full range 设置油门设置不补偿
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
     // process pilot's yaw input
@@ -129,11 +131,12 @@ void Mode::auto_takeoff_run()
         }
     }
 
-    // aircraft stays in landed state until rotor speed run up has finished
+    // aircraft stays in landed state until rotor speed run up has finished 飞机保持着陆状态，直到旋翼速度提升完成 
     if (motors->get_spool_state() == AP_Motors::SpoolState::THROTTLE_UNLIMITED) {
-        set_land_complete(false);
+        set_land_complete(false); //起飞 直升机加速完成后一直是THROTTLE_UNLIMITED
     } else {
         // motors have not completed spool up yet so relax navigation and position controllers
+        // 马达还没有完成卷轴，所以放松导航和位置控制器 
         pos_control->relax_velocity_controller_xy();
         pos_control->update_xy_controller();
         pos_control->relax_z_controller(0.0f);   // forces throttle output to decay to zero
@@ -145,7 +148,7 @@ void Mode::auto_takeoff_run()
     }
 
     // check if we are not navigating because of low altitude
-    if (auto_takeoff_no_nav_active) {
+    if (auto_takeoff_no_nav_active) {//一般为false
         // check if vehicle has reached no_nav_alt threshold
         if (inertial_nav.get_position_z_up_cm() >= auto_takeoff_no_nav_alt_cm) {
             auto_takeoff_no_nav_active = false;
@@ -158,15 +161,15 @@ void Mode::auto_takeoff_run()
     }
     pos_control->update_xy_controller();
 
-    // command the aircraft to the take off altitude
+    // command the aircraft to the take off altitude 命令飞行器到起飞高度
     float pos_z = auto_takeoff_complete_alt_cm + terr_offset;
     float vel_z = 0.0;
     copter.pos_control->input_pos_vel_accel_z(pos_z, vel_z, 0.0);
     
-    // run the vertical position controller and set output throttle
+    // run the vertical position controller and set output throttle 运行垂向位置控制器 并设置输出油门
     pos_control->update_z_controller();
 
-    // call attitude controller
+    // call attitude controller 姿态控制
     if (auto_yaw.mode() == AUTO_YAW_HOLD) {
         // roll & pitch from position controller, yaw rate from pilot
         attitude_control->input_thrust_vector_rate_heading(pos_control->get_thrust_vector(), target_yaw_rate);

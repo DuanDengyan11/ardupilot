@@ -719,6 +719,7 @@ const Vector3f &AP_AHRS::get_accel_ef(uint8_t i) const
 }
 
 // blended accelerometer values in the earth frame in m/s/s
+// 地轴系下的混合加速度值
 const Vector3f &AP_AHRS::get_accel_ef_blended(void) const
 {
     return _accel_ef_ekf_blended;
@@ -2299,7 +2300,7 @@ float AP_AHRS::getControlScaleZ(void) const
         // lag
         return 0.25;
     }
-    return 1;
+    return 1; //通常使用ekf3，返回1
 }
 
 // get compass offset estimates

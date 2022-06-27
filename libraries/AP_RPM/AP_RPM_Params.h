@@ -29,6 +29,9 @@ public:
     AP_Float minimum;
     AP_Float quality_min;
     AP_Int32 esc_mask;
+    //pole_num RedRatio是我们新添加的，目前仅在RPM_PIN中的RPM1有效
+    AP_Int8 pole_num; //级数
+    AP_Float red_ratio; //减速比 reduction ratio
 
     static const struct AP_Param::GroupInfo var_info[];
 

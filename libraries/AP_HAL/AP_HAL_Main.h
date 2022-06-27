@@ -14,6 +14,7 @@
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+// hal:硬件抽象层
 #pragma once
 
 #include "HAL.h"
@@ -22,6 +23,7 @@
 #define AP_MAIN main
 #endif
 
+// \ 是上一行接下一行
 #define AP_HAL_MAIN() \
     AP_HAL::HAL::FunCallbacks callbacks(setup, loop); \
     extern "C" {                               \

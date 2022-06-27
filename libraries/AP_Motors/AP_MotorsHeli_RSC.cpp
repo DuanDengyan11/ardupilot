@@ -41,10 +41,10 @@ const AP_Param::GroupInfo AP_MotorsHeli_RSC::var_info[] = {
 
     // @Param: RAMP_TIME
     // @DisplayName: Throttle Ramp Time
-    // @Description: Time in seconds for throttle output (HeliRSC servo) to ramp from ground idle (RSC_IDLE) to flight idle throttle setting when motor interlock is enabled (throttle hold off).
+    // @Description: Time in seconds for throttle output (HeliRSC servo) to ramp from ground idle (RSC_IDLE) to flight idle throttle setting when motor interlock is enabled (throttle hold off).当电机互锁启用（油门保持关闭）时，油门输出（HeliRSC伺服）从地面怠速（RSC_怠速）变为飞行怠速油门设置的时间（秒）。
     // @Range: 0 60
     // @Units: s
-    // @User: Standard
+    // @User: Standard  默认值1s
     AP_GROUPINFO("RAMP_TIME", 3, AP_MotorsHeli_RSC, _ramp_time, AP_MOTORS_HELI_RSC_RAMP_TIME),
 
     // @Param: RUNUP_TIME
@@ -52,7 +52,7 @@ const AP_Param::GroupInfo AP_MotorsHeli_RSC::var_info[] = {
     // @Description: Actual time in seconds for the main rotor to reach full speed after motor interlock is enabled (throttle hold off). Must be at least one second longer than the Throttle Ramp Time that is set with RSC_RAMP_TIME. WARNING: For AutoThrottle users with piston and turbine engines it is VERY important to know how long it takes to warm up your engine and reach full rotor speed when throttle switch is turned ON. This timer should be set for at least the amount of time it takes to get your helicopter to full flight power, ready for takeoff. Failure to heed this warning could result in the auto-takeoff mode attempting to lift up into hover before the engine has reached full power, and subsequent loss of control
     // @Range: 0 60
     // @Units: s
-    // @User: Standard
+    // @User: Standard 默认值10秒，加到全速度的时间
     AP_GROUPINFO("RUNUP_TIME", 4, AP_MotorsHeli_RSC, _runup_time, AP_MOTORS_HELI_RSC_RUNUP_TIME),
 
     // @Param: CRITICAL
@@ -372,21 +372,21 @@ void AP_MotorsHeli_RSC::update_rotor_ramp(float rotor_ramp_input, float dt)
 void AP_MotorsHeli_RSC::update_rotor_runup(float dt)
 {
     int8_t runup_time = _runup_time;
-    // sanity check runup time
+    // sanity check runup time runup time必須比ramp_time多至少1s
     runup_time = MAX(_ramp_time+1,runup_time);
 
-    // adjust rotor runup when bailing out
+    // adjust rotor runup when bailing out 默认没有_use_bailout_ramp
     if (_use_bailout_ramp) {
         // maintain same delta as set in parameters
         runup_time = _runup_time-_ramp_time+1;
     }
 
-    // protect against divide by zero
+    // protect against divide by zero 避免runup_time为0
     runup_time = MAX(1,runup_time);
 
     // ramp speed estimate towards control out
-    float runup_increment = dt / runup_time;
-    if (_rotor_runup_output < _rotor_ramp_output) {
+    float runup_increment = dt / runup_time;   //runup_time增长速率
+    if (_rotor_runup_output < _rotor_ramp_output) { //_rotor_ramp_output大于_rotor_runup_output
         _rotor_runup_output += runup_increment;
         if (_rotor_runup_output > _rotor_ramp_output) {
             _rotor_runup_output = _rotor_ramp_output;
@@ -400,7 +400,7 @@ void AP_MotorsHeli_RSC::update_rotor_runup(float dt)
 
     // update run-up complete flag
 
-    // if control mode is disabled, then run-up complete always returns true
+    // if control mode is disabled, then run-up complete always returns true 默认是ROTOR_CONTROL_MODE_PASSTHROUGH
     if ( _control_mode == ROTOR_CONTROL_MODE_DISABLED ){
         _runup_complete = true;
         return;
@@ -422,7 +422,7 @@ void AP_MotorsHeli_RSC::update_rotor_runup(float dt)
 // get_rotor_speed - gets rotor speed either as an estimate, or (ToDO) a measured value
 float AP_MotorsHeli_RSC::get_rotor_speed() const
 {
-    // if no actual measured rotor speed is available, estimate speed based on rotor runup scalar.
+    // if no actual measured rotor speed is available, estimate speed based on rotor runup scalar. 如果没有实际测量的转子转速可用，则根据转子升速标量估算转速 
     return _rotor_runup_output;
 }
 

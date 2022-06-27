@@ -25,10 +25,16 @@ public:
     uint16_t get_pwm_us();            // return last measured PWM input
     uint16_t get_pwm_avg_us();        // return average PWM since last call to get_pwm_avg_us
 
+    uint16_t get_fre_hz();
+    uint16_t get_fre_avg_hz();
+
 private:
     uint16_t _irq_value_us;         // last calculated pwm value (irq copy)
     uint32_t _pulse_start_us;       // system time of start of pulse
     int16_t _pin = -1;
+    uint32_t fre_hz; // frequency in khz
+    uint32_t fre_hz_sum; // frequency in khz
+    uint32_t fre_hz_count; // frequency in khz
 
     uint32_t _irq_value_us_sum;     // for get_pwm_avg_us
     uint32_t _irq_value_us_count;   // for get_pwm_avg_us

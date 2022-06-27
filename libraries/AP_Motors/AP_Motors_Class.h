@@ -172,7 +172,7 @@ public:
     // spool states
     enum class SpoolState : uint8_t {
         SHUT_DOWN = 0,                      // all motors stop
-        GROUND_IDLE = 1,                    // all motors at ground idle
+        GROUND_IDLE = 1,                    // all motors at ground idle 所有电机均处于地面怠速
         SPOOLING_UP = 2,                       // increasing maximum throttle while stabilizing
         THROTTLE_UNLIMITED = 3,             // throttle is no longer constrained by start up procedure
         SPOOLING_DOWN = 4,                     // decreasing maximum throttle while stabilizing
@@ -290,7 +290,7 @@ protected:
 
     // internal variables
     uint16_t            _loop_rate;                 // rate in Hz at which output() function is called (normally 400hz)
-    uint16_t            _speed_hz;                  // speed in hz to send updates to motors
+    uint16_t            _speed_hz;                  // speed in hz to send updates to motors向电机发送更新的速度
     float               _roll_in;                   // desired roll control from attitude controllers, -1 ~ +1
     float               _roll_in_ff;                // desired roll feed forward control from attitude controllers, -1 ~ +1
     float               _pitch_in;                  // desired pitch control from attitude controller, -1 ~ +1

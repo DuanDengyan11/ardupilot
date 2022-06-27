@@ -68,7 +68,9 @@ const AP_Param::GroupInfo AP_RPM_Params::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("ESC_MASK", 7, AP_RPM_Params, esc_mask, 0),
 
-    AP_GROUPEND
+    AP_GROUPINFO("POLE_NUM", 8, AP_RPM_Params, pole_num, 2),
+
+    AP_GROUPINFO("RED_RATIO", 9, AP_RPM_Params, red_ratio, 1.0),
 };
 
 AP_RPM_Params::AP_RPM_Params(void)

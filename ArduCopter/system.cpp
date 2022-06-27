@@ -52,7 +52,7 @@ void Copter::init_ardupilot()
     
     barometer.init();
 
-    // setup telem slots with serial ports
+    // setup telem slots with serial ports  与前面解释的setup_console()函数类似，这边实现的是对剩下4个类接口的注册及初始化工作。
     gcs().setup_uarts();
 
 #if OSD_ENABLED == ENABLED

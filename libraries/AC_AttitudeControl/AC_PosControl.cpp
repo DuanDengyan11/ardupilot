@@ -325,7 +325,7 @@ AC_PosControl::AC_PosControl(AP_AHRS_View& ahrs, const AP_InertialNav& inav,
 /// 3D position shaper
 ///
 
-/// input_pos_xyz - calculate a jerk limited path from the current position, velocity and acceleration to an input position.
+/// input_pos_xyz - calculate a jerk limited path from the current position, velocity and acceleration to an input position. 计算从当前位置、速度和加速度到输入位置的冲动受限路径
 ///     The function takes the current position, velocity, and acceleration and calculates the required jerk limited adjustment to the acceleration for the next time dt.
 ///     The kinematic path is constrained by the maximum jerk parameter and the velocity and acceleration limits set using the function set_max_speed_accel_xy.
 ///     The jerk limit defines the acceleration error decay in the kinematic path as the system approaches constant acceleration.
@@ -350,7 +350,7 @@ void AC_PosControl::input_pos_xyz(const Vector3p& pos, float pos_offset_z, float
     // adjust desired altitude if motors have not hit their limits
     update_pos_vel_accel(_pos_target.z, _vel_desired.z, _accel_desired.z, _dt, _limit_vector.z, _p_pos_z.get_error(), _pid_vel_z.get_error());
 
-    // calculate the horizontal and vertical velocity limits to travel directly to the destination defined by pos
+    // calculate the horizontal and vertical velocity limits to travel directly to the destination defined by pos 计算横向和垂向速度限制
     float vel_max_xy_cms = 0.0f;
     float vel_max_z_cms = 0.0f;
     Vector3f dest_vector = (pos - _pos_target).tofloat();
@@ -535,6 +535,7 @@ void AC_PosControl::input_accel_xy(const Vector3f& accel)
 ///     The parameter limit_output specifies if the velocity and acceleration limits are applied to the sum of commanded and correction values or just correction.
 void AC_PosControl::input_vel_accel_xy(Vector2f& vel, const Vector2f& accel, bool limit_output)
 {
+    // limit_output默认为真
     update_pos_vel_accel_xy(_pos_target.xy(), _vel_desired.xy(), _accel_desired.xy(), _dt, _limit_vector.xy(), _p_pos_xy.get_error(), _pid_vel_xy.get_error());
 
     shape_vel_accel_xy(vel, accel, _vel_desired.xy(), _accel_desired.xy(),
@@ -582,7 +583,7 @@ void AC_PosControl::stop_vel_xy_stabilisation()
 // is_active_xy - returns true if the xy position controller has been run in the previous 5 loop times
 bool AC_PosControl::is_active_xy() const
 {
-    return ((AP_HAL::micros64() - _last_update_xy_us) <= _dt * 5000000.0);
+    return ((AP_HAL::micros64() - _last_update_xy_us) <= _dt * 5000000.0); 
 }
 
 /// update_xy_controller - runs the horizontal position controller correcting position, velocity and acceleration errors.
@@ -609,8 +610,8 @@ void AC_PosControl::update_xy_controller()
 
     // Position Controller
 
-    const Vector3f &curr_pos = _inav.get_position_neu_cm();
-    Vector2f vel_target = _p_pos_xy.update_all(_pos_target.x, _pos_target.y, curr_pos);
+    const Vector3f &curr_pos = _inav.get_position_neu_cm();  //当前坐标值
+    Vector2f vel_target = _p_pos_xy.update_all(_pos_target.x, _pos_target.y, curr_pos); //开方控制器 位置环p值
 
     // add velocity feed-forward scaled to compensate for optical flow measurement induced EKF noise
     vel_target *= ahrsControlScaleXY;
@@ -619,16 +620,16 @@ void AC_PosControl::update_xy_controller()
 
     // Velocity Controller
 
-    const Vector2f &curr_vel = _inav.get_velocity_xy_cms();
-    Vector2f accel_target = _pid_vel_xy.update_all(_vel_target.xy(), curr_vel, _limit_vector.xy());
+    const Vector2f &curr_vel = _inav.get_velocity_xy_cms(); //当前速度
+    Vector2f accel_target = _pid_vel_xy.update_all(_vel_target.xy(), curr_vel, _limit_vector.xy()); //速度环pid
     
     // acceleration to correct for velocity error and scale PID output to compensate for optical flow measurement induced EKF noise
     accel_target *= ahrsControlScaleXY;
 
-    // pass the correction acceleration to the target acceleration output
+    // pass the correction acceleration to the target acceleration output 
     _accel_target.xy() = accel_target;
 
-    // Add feed forward into the target acceleration output
+    // Add feed forward into the target acceleration output  目标加速度
     _accel_target.xy() += _accel_desired.xy();
 
     // Acceleration Controller
@@ -767,7 +768,7 @@ void AC_PosControl::init_z_controller()
         - _pid_accel_z.kP() * (_accel_target.z - get_z_accel_cmss())
         - _pid_accel_z.ff() * _accel_target.z);
 
-    // initialise ekf z reset handler
+    // initialise ekf z reset handler 
     init_ekf_z_reset();
 
     // initialise z_controller time out
@@ -853,10 +854,10 @@ void AC_PosControl::land_at_climb_rate_cm(float vel, bool ignore_descent_limit)
 void AC_PosControl::input_pos_vel_accel_z(float &pos, float &vel, float accel, bool limit_output)
 {
     // calculated increased maximum acceleration and jerk if over speed
-    float accel_max_z_cmss = _accel_max_z_cmss * calculate_overspeed_gain();
-    float jerk_max_z_cmsss = _jerk_max_z_cmsss * calculate_overspeed_gain();
+    float accel_max_z_cmss = _accel_max_z_cmss * calculate_overspeed_gain(); //calculate_overspeed_gain 返回值正常是1， 250 cm/s/s
+    float jerk_max_z_cmsss = _jerk_max_z_cmsss * calculate_overspeed_gain(); //500cm/s/s
 
-    // adjust desired altitude if motors have not hit their limits
+    // adjust desired altitude if motors have not hit their limits 如果电机未达到极限，则调整期望高度 
     update_pos_vel_accel(_pos_target.z, _vel_desired.z, _accel_desired.z, _dt, _limit_vector.z, _p_pos_z.get_error(), _pid_vel_z.get_error());
 
     shape_pos_vel_accel(pos, vel, accel,
@@ -906,11 +907,11 @@ bool AC_PosControl::is_active_z() const
 ///     Kinematically consistent target position and desired velocity and accelerations should be provided before calling this function
 void AC_PosControl::update_z_controller()
 {
-    // check for ekf z-axis position reset
-    handle_ekf_z_reset();
+    // check for ekf z-axis position reset 检查ekf z轴位置重置 
+    handle_ekf_z_reset(); //函数中更新了pos_target.z和vel_target.z
 
-    // Check for z_controller time out
-    if (!is_active_z()) {
+    // Check for z_controller time out 检查z轴控制器是否超时
+    if (!is_active_z()) {  //检查两次位置控制器运行是否超时，一般为否
         init_z_controller();
         if (has_good_timing()) {
             // call internal error because initialisation has not been done
@@ -920,58 +921,56 @@ void AC_PosControl::update_z_controller()
     _last_update_z_us = AP_HAL::micros64();
 
     // calculate the target velocity correction
-    float pos_target_zf = _pos_target.z;
+    float pos_target_zf = _pos_target.z; //目标位置
 
-    _vel_target.z = _p_pos_z.update_all(pos_target_zf, _inav.get_position_z_up_cm());
-    _vel_target.z *= AP::ahrs().getControlScaleZ();
+    _vel_target.z = _p_pos_z.update_all(pos_target_zf, _inav.get_position_z_up_cm()); //sqrt_controller 计算目标速度； 同时对target进行了限幅
+    _vel_target.z *= AP::ahrs().getControlScaleZ();  //系数为1
 
     _pos_target.z = pos_target_zf;
 
     // add feed forward component
-    _vel_target.z += _vel_desired.z;
+    _vel_target.z += _vel_desired.z; //加上前馈量
 
-    // Velocity Controller
-
-    const float curr_vel_z = _inav.get_velocity_z_up_cms();
+    // Velocity Controller 速度控制器
+    const float curr_vel_z = _inav.get_velocity_z_up_cms(); //当前垂向速度
     _accel_target.z = _pid_vel_z.update_all(_vel_target.z, curr_vel_z, _motors.limit.throttle_lower, _motors.limit.throttle_upper);
-    _accel_target.z *= AP::ahrs().getControlScaleZ();
+    _accel_target.z *= AP::ahrs().getControlScaleZ(); //系数为1
 
-    // add feed forward component
+    // add feed forward component //加上前馈量
     _accel_target.z += _accel_desired.z;
 
-    // Acceleration Controller
-
-    // Calculate vertical acceleration
+    // Acceleration Controller 加速度控制器
+    // Calculate vertical acceleration计算垂向加速度（测量值）
     const float z_accel_meas = get_z_accel_cmss();
 
-    // ensure imax is always large enough to overpower hover throttle
-    if (_motors.get_throttle_hover() * 1000.0f > _pid_accel_z.imax()) {
+    // ensure imax is always large enough to overpower hover throttle 确保imax始终足够大，以压倒悬停油门 
+    if (_motors.get_throttle_hover() * 1000.0f > _pid_accel_z.imax()) { //collective hover一般设置为0.5， _pid_accel_z.imax()为800
         _pid_accel_z.imax(_motors.get_throttle_hover() * 1000.0f);
     }
+    
     float thr_out;
-    if (_vibe_comp_enabled) {
+    if (_vibe_comp_enabled) { //启用高振动补偿时为真，与ekf_check.cpp有关，正常不开启
         thr_out = get_throttle_with_vibration_override();
     } else {
         thr_out = _pid_accel_z.update_all(_accel_target.z, z_accel_meas, (_motors.limit.throttle_lower || _motors.limit.throttle_upper)) * 0.001f;
         thr_out += _pid_accel_z.get_ff() * 0.001f;
     }
     thr_out += _motors.get_throttle_hover();
-
     // Actuator commands
 
     // send throttle to attitude controller with angle boost
     _attitude_control.set_throttle_out(thr_out, true, POSCONTROL_THROTTLE_CUTOFF_FREQ_HZ);
 
-    // Check for vertical controller health
+    // Check for vertical controller health 检查位置控制器是否健康
 
     // _speed_down_cms is checked to be non-zero when set
     float error_ratio = _pid_vel_z.get_error() / _vel_max_down_cms;
     _vel_z_control_ratio += _dt * 0.1f * (0.5 - error_ratio);
     _vel_z_control_ratio = constrain_float(_vel_z_control_ratio, 0.0f, 2.0f);
 
-    // set vertical component of the limit vector
+    // set vertical component of the limit vector  
     if (_motors.limit.throttle_upper) {
-        _limit_vector.z = 1.0f;
+        _limit_vector.z = 1.0f;  //位置控制器受限的方向，不受限时为零
     } else if (_motors.limit.throttle_lower) {
         _limit_vector.z = -1.0f;
     } else {
@@ -1262,8 +1261,8 @@ void AC_PosControl::handle_ekf_z_reset()
     uint32_t reset_ms = _ahrs.getLastPosDownReset(alt_shift);
     if (reset_ms != 0 && reset_ms != _ekf_z_reset_ms) {
 
-        _pos_target.z = _inav.get_position_z_up_cm() + _p_pos_z.get_error();
-        _vel_target.z = _inav.get_velocity_z_up_cms() + _pid_vel_z.get_error();
+        _pos_target.z = _inav.get_position_z_up_cm() + _p_pos_z.get_error();    //当前位置+位置误差 = 目标位置
+        _vel_target.z = _inav.get_velocity_z_up_cms() + _pid_vel_z.get_error(); //当前速度+速度误差 = 目标速度
 
         _ekf_z_reset_ms = reset_ms;
     }

@@ -80,7 +80,9 @@ MAV_STATE GCS_MAVLINK_Copter::vehicle_system_status() const
 void GCS_MAVLINK_Copter::send_attitude_target()
 {
     const Quaternion quat  = copter.attitude_control->get_attitude_target_quat();
-    const Vector3f ang_vel = copter.attitude_control->get_attitude_target_ang_vel();
+    // const Vector3f ang_vel = copter.attitude_control->get_attitude_target_ang_vel();
+    // 为便于调参 修改为计入角度pid之后的体轴系下的角速度
+    const Vector3f ang_vel = copter.attitude_control->get_attitude_target_ang_vel_body_pid();
     const float thrust = copter.attitude_control->get_throttle_in();
 
     const float quat_out[4] {quat.q1, quat.q2, quat.q3, quat.q4};
@@ -178,23 +180,34 @@ void GCS_MAVLINK_Copter::send_position_target_local_ned()
         break;
     }
 
+    
+#endif
+
+    const Vector3f &accel_target = copter.pos_control->get_accel_target_cmss();
     mavlink_msg_position_target_local_ned_send(
         chan,
         AP_HAL::millis(), // time boot ms
         MAV_FRAME_LOCAL_NED, 
         type_mask,
-        target_pos.x,   // x in metres
-        target_pos.y,   // y in metres
-        -target_pos.z,  // z in metres NED frame
-        target_vel.x,   // vx in m/s
-        target_vel.y,   // vy in m/s
-        -target_vel.z,  // vz in m/s NED frame
-        target_accel.x, // afx in m/s/s
-        target_accel.y, // afy in m/s/s
+        // target_pos.x,   // x in metres
+        // target_pos.y,   // y in metres
+        // -target_pos.z,  // z in metres NED frame
+        // target_vel.x,   // vx in m/s
+        // target_vel.y,   // vy in m/s
+        // -target_vel.z,  // vz in m/s NED frame
+        copter.pos_control->get_pos_target_cm().x * 0.01f,
+        copter.pos_control->get_pos_target_cm().y * 0.01f,
+        -copter.pos_control->get_pos_target_cm().z * 0.01f,
+        copter.pos_control->get_vel_target_cms().x * 0.01f,
+        copter.pos_control->get_vel_target_cms().y * 0.01f,
+        -copter.pos_control->get_vel_target_cms().z * 0.01f,
+        // target_accel.x, // afx in m/s/s
+        // target_accel.y, // afy in m/s/s
+        (float)accel_target.z,
+        (float)(-(copter.ahrs_view->get_accel_ef_blended().z + GRAVITY_MSS) * 100.0f), 
         -target_accel.z,// afz in m/s/s NED frame
         0.0f, // yaw
         0.0f); // yaw_rate
-#endif
 }
 
 void GCS_MAVLINK_Copter::send_nav_controller_output() const
@@ -473,6 +486,7 @@ const AP_Param::GroupInfo GCS_MAVLINK_Parameters::var_info[] = {
     // @RebootRequired: True
     // @User: Advanced
     AP_GROUPINFO("ADSB",   9, GCS_MAVLINK_Parameters, streamRates[9],  0),
+
 AP_GROUPEND
 };
 
@@ -483,6 +497,7 @@ static const ap_message STREAM_RAW_SENSORS_msgs[] = {
     MSG_SCALED_PRESSURE,
     MSG_SCALED_PRESSURE2,
     MSG_SCALED_PRESSURE3,
+    MSG_RPM,
 };
 static const ap_message STREAM_EXTENDED_STATUS_msgs[] = {
     MSG_SYS_STATUS,
@@ -511,10 +526,13 @@ static const ap_message STREAM_EXTRA1_msgs[] = {
     MSG_ATTITUDE,
     MSG_SIMSTATE,
     MSG_AHRS2,
-    MSG_PID_TUNING // Up to four PID_TUNING messages are sent, depending on GCS_PID_MASK parameter
+    MSG_PID_TUNING, // Up to four PID_TUNING messages are sent, depending on GCS_PID_MASK parameter
+    MSG_ATTITUDE_QUATERNION,
+    MSG_ATTITUDE_TARGET,
+    MSG_POSITION_TARGET_LOCAL_NED,
 };
 static const ap_message STREAM_EXTRA2_msgs[] = {
-    MSG_VFR_HUD
+    MSG_VFR_HUD,
 };
 static const ap_message STREAM_EXTRA3_msgs[] = {
     MSG_AHRS,

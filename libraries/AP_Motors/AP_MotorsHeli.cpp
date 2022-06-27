@@ -359,7 +359,7 @@ void AP_MotorsHeli::output_logic()
                 set_limit_flag_pitch_roll_yaw(false);
             }
 
-            // make sure the motors are spooling in the correct direction
+            // make sure the motors are spooling in the correct direction 确保电机绕线方向正确 
             if (_spool_desired != DesiredSpoolState::SHUT_DOWN) {
                 _spool_state = SpoolState::GROUND_IDLE;
                 break;

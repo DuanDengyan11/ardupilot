@@ -9,7 +9,7 @@
 bool ModeStabilize_Heli::init(bool ignore_checks)
 {
     // be aware that when adding code to this function that it is *NOT
-    // RUN* at vehicle startup!
+    // RUN* at vehicle startup!  请注意，向此功能添加代码时，它在车辆启动时“未运行”！ 
 
     // set stab collective true to use stabilize scaled collective pitch range
     copter.input_manager.set_use_stab_col(true);
@@ -53,19 +53,35 @@ void ModeStabilize_Heli::run()
     switch (motors->get_spool_state()) {
     case AP_Motors::SpoolState::SHUT_DOWN:
         // Motors Stopped
-        attitude_control->reset_yaw_target_and_rate(false);
+        if(copter.g.isyaw)
+        {
+            attitude_control->reset_yaw_target_and_rate();
+        }else
+        {
+            attitude_control->reset_yaw_target_and_rate(false);
+        }      
         attitude_control->reset_rate_controller_I_terms();
         break;
     case AP_Motors::SpoolState::GROUND_IDLE:
         // If aircraft is landed, set target heading to current and reset the integrator
-        // Otherwise motors could be at ground idle for practice autorotation
+        // Otherwise motors could be at ground idle for practice autorotation如果飞机着陆，将目标航向设置为当前航向并重置积分器 否则，电机可能处于地面闲置状态，以便进行自动旋转练习
         if ((motors->init_targets_on_arming() && motors->using_leaky_integrator()) || (copter.ap.land_complete && !motors->using_leaky_integrator())) {
-            attitude_control->reset_yaw_target_and_rate(false);
+            if(copter.g.isyaw)
+            {
+                attitude_control->reset_yaw_target_and_rate();
+            }else
+            {
+                attitude_control->reset_yaw_target_and_rate(false);
+            }
             attitude_control->reset_rate_controller_I_terms_smoothly();
         }
         break;
     case AP_Motors::SpoolState::THROTTLE_UNLIMITED:
         if (copter.ap.land_complete && !motors->using_leaky_integrator()) {
+            if(copter.g.isyaw)
+            {
+                attitude_control->reset_yaw_target_and_rate();
+            }
             attitude_control->reset_rate_controller_I_terms_smoothly();
         }
         break;

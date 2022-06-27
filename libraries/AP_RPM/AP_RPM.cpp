@@ -135,6 +135,8 @@ void AP_RPM::convert_params(void)
             {4, 4, 0}, // MIN_QUAL
             {5, 5, 0}, // PIN
             {6, 6, 0}, // ESC_MASK
+            {7, 7, 0}, // pole_num
+            {8, 8, 0}, // reduction ratio
 
             // RPM 2
             {10, 0, 1}, // TYPE

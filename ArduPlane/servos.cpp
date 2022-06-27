@@ -810,7 +810,7 @@ void Plane::force_flare(void)
   Finally servos_output() is called to push the final PWM values
   for output channels
 */
-void Plane::set_servos(void)
+void Plane::set_servos(void) //SCHED_TASK里会调用
 {
     // start with output corked. the cork is released when we run
     // servos_output(), which is run from all code paths in this

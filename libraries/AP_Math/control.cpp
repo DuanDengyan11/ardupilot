@@ -48,7 +48,7 @@ void update_pos_vel_accel(postype_t& pos, float& vel, float accel, float dt, flo
 {
     // move position and velocity forward by dt if it does not increase error when limited.
     float delta_pos = vel * dt + accel * 0.5f * sq(dt);
-    // do not add delta_pos if it will increase the velocity error in the direction of limit
+    // do not add delta_pos if it will increase the velocity error in the direction of limit 若达到极限，不计入delta_pos
     if (!(is_positive(delta_pos * limit) && is_positive(pos_error * limit))){
         pos += delta_pos;
     }
@@ -267,39 +267,39 @@ void shape_pos_vel_accel(postype_t pos_input, float vel_input, float accel_input
                          float accel_min, float accel_max,
                          float jerk_max, float dt, bool limit_total_accel)
 {
-    // sanity check accel_max
+    // sanity check accel_max 加速度最小值必须为负，最大值必须为正
     if (!(is_negative(accel_min) && is_positive(accel_max))) {
         INTERNAL_ERROR(AP_InternalError::error_t::invalid_arg_or_result);
         return;
     }
 
 
-    // position error to be corrected
+    // position error to be corrected 需要修正的位置误差
     float pos_error = pos_input - pos;
 
-    // Calculate time constants and limits to ensure stable operation
+    // Calculate time constants and limits to ensure stable operation  计算时间常数和限制，以确保稳定运行 
     // The negative acceleration limit is used here because the square root controller
     // manages the approach to the setpoint. Therefore the acceleration is in the opposite
-    // direction to the position error.
+    // direction to the position error.  此处使用负加速度极限，因为平方根控制器管理接近设定点的方法。因此，加速度与位置误差的方向相反。 
     float accel_tc_max;
     float KPv;
     if (is_positive(pos_error)) {
-        accel_tc_max = -0.5 * accel_min;
-        KPv = 0.5 * jerk_max / (-accel_min);
+        accel_tc_max = -0.5 * accel_min;  // = -0.5 * -250 = 125cm/s/s
+        KPv = 0.5 * jerk_max / (-accel_min);  // = 0.5*500/(250) = 1
     } else {
-        accel_tc_max = 0.5 * accel_max;
-        KPv = 0.5 * jerk_max / accel_max;
+        accel_tc_max = 0.5 * accel_max;  // = 0.5*250 = 125cm/s/s
+        KPv = 0.5 * jerk_max / accel_max; // = 1
     }
 
-    // velocity to correct position
+    // velocity to correct position 用来修正位置的速度
     float vel_target = sqrt_controller(pos_error, KPv, accel_tc_max, dt);
 
-    // limit velocity to vel_max
+    // limit velocity to vel_max 速度限幅
     if (is_negative(vel_min) && is_positive(vel_max)){
         vel_target = constrain_float(vel_target, vel_min, vel_max);
     }
 
-    // velocity correction with input velocity
+    // velocity correction with input velocity 加上输入速度
     vel_target += vel_input;
 
     shape_vel_accel(vel_target, accel_input, vel, accel, accel_min, accel_max, jerk_max, dt, limit_total_accel);
@@ -384,20 +384,22 @@ float sqrt_controller(float error, float p, float second_ord_lim, float dt)
 {
     float correction_rate;
     if (is_negative(second_ord_lim) || is_zero(second_ord_lim)) {
-        // second order limit is zero or negative.
+        // second order limit is zero or negative. 没有定义second_ord_lim，返回p*error
         correction_rate = error * p;
     } else if (is_zero(p)) {
         // P term is zero but we have a second order limit.
+        // 开启了sqrt_controller，但kp为0
         if (is_positive(error)) {
-            correction_rate = safe_sqrt(2.0 * second_ord_lim * (error));
+            correction_rate = safe_sqrt(2.0 * second_ord_lim * (error)); //safe_sqrt 正常返回sqrt值，若sqrt值为nan,则返回0
         } else if (is_negative(error)) {
             correction_rate = -safe_sqrt(2.0 * second_ord_lim * (-error));
         } else {
             correction_rate = 0.0;
         }
     } else {
-        // Both the P and second order limit have been defined.
-        const float linear_dist = second_ord_lim / sq(p);
+        // Both the P and second order limit have been defined. 开启了sqrt_controller，同时kp为0，一般都是进入这个判断
+        //参考微博，讲得很清楚https://blog.csdn.net/zhoupian/article/details/108101445
+        const float linear_dist = second_ord_lim / sq(p); //计算获取分界点linear_dist
         if (error > linear_dist) {
             correction_rate = safe_sqrt(2.0 * second_ord_lim * (error - (linear_dist / 2.0)));
         } else if (error < -linear_dist) {
@@ -407,7 +409,7 @@ float sqrt_controller(float error, float p, float second_ord_lim, float dt)
         }
     }
     if (!is_zero(dt)) {
-        // this ensures we do not get small oscillations by over shooting the error correction in the last time step.
+        // this ensures we do not get small oscillations by over shooting the error correction in the last time step. 这确保了我们不会因为在最后一个时间步中过多地进行错误校正而得到小的振荡。 
         return constrain_float(correction_rate, -fabsf(error) / dt, fabsf(error) / dt);
     } else {
         return correction_rate;

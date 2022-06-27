@@ -4,7 +4,7 @@
  * can be used to exclude HAL boards from the build when appropriate.
  * It's not an elegant solution but we can improve it in future.
  */
-#pragma once
+#pragma once  //为了避免同一个文件被include多次
 
 #define HAL_BOARD_SITL     3
 #define HAL_BOARD_SMACCM   4  // unused

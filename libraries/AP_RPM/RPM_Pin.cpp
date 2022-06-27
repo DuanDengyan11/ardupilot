@@ -84,7 +84,9 @@ void AP_RPM_Pin::update(void)
         float maximum = ap_rpm._params[state.instance].maximum;
         float minimum = ap_rpm._params[state.instance].minimum;
         float quality = 0;
-        float rpm = scaling * (1.0e6 / dt_avg) * 60;
+        float pole_num = ap_rpm._params[state.instance].pole_num;
+        float red_ratio = ap_rpm._params[state.instance].red_ratio;
+        float rpm = scaling * (1.0e6 / dt_avg) * 60 / (pole_num/2.0) / red_ratio;
         float filter_value = signal_quality_filter.get();
 
         state.rate_rpm = signal_quality_filter.apply(rpm);
@@ -104,8 +106,8 @@ void AP_RPM_Pin::update(void)
     }
 
     // assume we get readings at at least 1Hz, otherwise reset quality to zero
-    if (AP_HAL::millis() - state.last_reading_ms > 1000) {
-        state.signal_quality = 0;
-        state.rate_rpm = 0;
-    }
+    // if (AP_HAL::millis() - state.last_reading_ms > 1000) {
+    //     state.signal_quality = 0;
+    //     state.rate_rpm = 0;
+    // }
 }

@@ -342,7 +342,7 @@ bool GCS::out_of_time() const
 
     if (min_loop_time_remaining_for_message_send_us() <= AP::scheduler().time_available_usec()) {
         return false;
-    }
+    }//time_available_usec返回剩余task可用时间，不得小于200us
 
     return true;
 }

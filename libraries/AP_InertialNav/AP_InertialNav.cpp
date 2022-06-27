@@ -72,7 +72,7 @@ const Vector2f &AP_InertialNav::get_position_xy_cm() const
 }
 
 /**
- * get_position_z_up_cm - returns the current z position relative to the EKF origin, frame z-axis up, in cm.
+ * get_position_z_up_cm - returns the current z position relative to the EKF origin, frame z-axis up, in cm. 返回相对于EKF原点的当前z位置，帧z轴向上，单位为厘米。 
  * @return
  */
 float AP_InertialNav::get_position_z_up_cm() const

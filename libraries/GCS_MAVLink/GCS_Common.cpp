@@ -1152,11 +1152,11 @@ void GCS_MAVLINK::update_send()
     send_ftp_replies();
 
     if (!deferred_messages_initialised) {
-        initialise_message_intervals_from_streamrates();
+        initialise_message_intervals_from_streamrates();  //设置各个消息包发送频率，用到了all_stream_entries，里面有定义的mavlink消息
 #if HAL_MAVLINK_INTERVALS_FROM_FILES_ENABLED
         initialise_message_intervals_from_config_files();
 #endif
-        deferred_messages_initialised = true;
+        deferred_messages_initialised = true; //延迟消息初始化
     }
 
 #if GCS_DEBUG_SEND_MESSAGE_TIMINGS
@@ -1165,7 +1165,7 @@ void GCS_MAVLINK::update_send()
 
     const uint32_t start = AP_HAL::millis();
     const uint16_t start16 = start & 0xFFFF;
-    while (AP_HAL::millis() - start < 5) { // spend a max of 5ms sending messages.  This should never trigger - out_of_time() should become true
+    while (AP_HAL::millis() - start < 5) { // spend a max of 5ms sending messages.  This should never trigger - out_of_time() should become true 最多花5毫秒发送消息。这永远不会触发-out_of_time（）应该成为现实 
         if (gcs().out_of_time()) {
 #if GCS_DEBUG_SEND_MESSAGE_TIMINGS
             try_send_message_stats.out_of_time++;
@@ -1177,23 +1177,23 @@ void GCS_MAVLINK::update_send()
         retry_deferred_body_start = AP_HAL::micros();
 #endif
 
-        // check if any "specially handled" messages should be sent out
+        // check if any "specially handled" messages should be sent out 检查是否应发送任何“特别处理”的信息 
         {
-            const int8_t next = deferred_message_to_send_index(start16);
+            const int8_t next = deferred_message_to_send_index(start16); 
             if (next != -1) {
                 if (!do_try_send_message(deferred_message[next].id)) {
                     break;
                 }
                 // we try to keep output on a regular clock to avoid
-                // user support questions:
+                // user support questions:  我们试图保持输出正常，以避免用户支持问题： 
                 const uint16_t interval_ms = deferred_message[next].interval_ms;
                 deferred_message[next].last_sent_ms += interval_ms;
-                // but we do not want to try to catch up too much:
+                // but we do not want to try to catch up too much:  但我们不想追赶太多： 
                 if (uint16_t(start16 - deferred_message[next].last_sent_ms) > interval_ms) {
                     deferred_message[next].last_sent_ms = start16;
                 }
 
-                next_deferred_message_to_send_cache = -1; // deferred_message_to_send will recalculate
+                next_deferred_message_to_send_cache = -1; // deferred_message_to_send will recalculate延迟发送的消息将重新计算
 #if GCS_DEBUG_SEND_MESSAGE_TIMINGS
                 const uint32_t stop = AP_HAL::micros();
                 const uint32_t delta = stop - retry_deferred_body_start;
@@ -1206,7 +1206,7 @@ void GCS_MAVLINK::update_send()
             }
         }
 
-        // check for any messages that the code has explicitly sent
+        // check for any messages that the code has explicitly sent 检查代码明确发送的任何消息 
         const int16_t fs = pushed_ap_message_ids.first_set();
         if (fs != -1) {
             ap_message next = (ap_message)fs;
@@ -1314,21 +1314,21 @@ bool GCS_MAVLINK::set_ap_message_interval(enum ap_message id, uint16_t interval_
         }
     }
 
-    // send messages out at most 80% of main loop rate
+    // send messages out at most 80% of main loop rate 以主循环速率的80%发送消息
     if (interval_ms != 0 &&
         interval_ms*800 < AP::scheduler().get_loop_period_us()) {
         interval_ms = AP::scheduler().get_loop_period_us()/800.0f;
     }
 
-    // check if it's a specially-handled message:
-    const int8_t deferred_offset = get_deferred_message_index(id);
+    // check if it's a specially-handled message: 检查是否是特殊处理的消息 heartbeat next_param MSG_HIGH_LATENCY2
+    const int8_t deferred_offset = get_deferred_message_index(id);  
     if (deferred_offset != -1) {
         deferred_message[deferred_offset].interval_ms = interval_ms;
         deferred_message[deferred_offset].last_sent_ms = AP_HAL::millis16();
         return true;
     }
 
-    // see which bucket has the closest interval:
+    // see which bucket has the closest interval:  查看哪个桶的间隔最近： 
     int8_t closest_bucket = -1;
     uint16_t closest_bucket_interval_delta = UINT16_MAX;
     int8_t in_bucket = -1;
@@ -1463,6 +1463,7 @@ void
 GCS_MAVLINK::update_receive(uint32_t max_time_us)
 {
     // do absolutely nothing if we are locked
+    // 查看通道是否适用开启mavlink
     if (locked()) {
         return;
     }
@@ -1470,10 +1471,10 @@ GCS_MAVLINK::update_receive(uint32_t max_time_us)
     // receive new packets
     mavlink_message_t msg;
     mavlink_status_t status;
-    uint32_t tstart_us = AP_HAL::micros();
-    uint32_t now_ms = AP_HAL::millis();
+    uint32_t tstart_us = AP_HAL::micros(); //微秒数
+    uint32_t now_ms = AP_HAL::millis(); //毫米数
 
-    status.packet_rx_drop_count = 0;
+    status.packet_rx_drop_count = 0; //丢包数
 
     const uint16_t nbytes = _port->available();
     for (uint16_t i=0; i<nbytes; i++)
@@ -1498,7 +1499,7 @@ GCS_MAVLINK::update_receive(uint32_t max_time_us)
               successful parse on the alternative protocol for 4s
              */
             if (now_ms - alternative.last_alternate_ms <= protocol_timeout) {
-                continue;
+                continue;   //跳过当前循环中的代码 强迫开始下一次循环
             }
         }
 
@@ -1541,6 +1542,7 @@ GCS_MAVLINK::update_receive(uint32_t max_time_us)
         }
     }
 
+// #if条件编译，编译器最先处理的部分 宏条件
 #if GCS_DEBUG_SEND_MESSAGE_TIMINGS
 
     const uint16_t now16_ms{AP_HAL::millis16()};
@@ -2149,7 +2151,7 @@ void GCS::update_send()
 #endif // HAL_BUILD_AP_PERIPH
     // round-robin the GCS_MAVLINK backend that gets to go first so
     // one backend doesn't monopolise all of the time allowed for sending
-    // messages
+    // messages 循环使用GCS_MAVLINK后端，这样一个后端就不会占用所有允许发送消息的时间 
     for (uint8_t i=first_backend_to_send; i<num_gcs(); i++) {
         chan(i)->update_send();
     }
@@ -2184,6 +2186,7 @@ void GCS::send_mission_item_reached_message(uint16_t mission_index)
 
 void GCS::setup_console()
 {
+    //在可用的串行端口搜索允许给定协议的第一个实例（instance），如果搜索的是协议的第一个实例，那么实例（instance）应该为0，第二个为1，以此类推。成功则返回串口设备
     AP_HAL::UARTDriver *uart = AP::serialmanager().find_serial(AP_SerialManager::SerialProtocol_MAVLink, 0);
     if (uart == nullptr) {
         // this is probably not going to end well.
@@ -2206,12 +2209,12 @@ void GCS::create_gcs_mavlink_backend(GCS_MAVLINK_Parameters &params, AP_HAL::UAR
     if (_num_gcs >= ARRAY_SIZE(chan_parameters)) {
         return;
     }
-    _chan[_num_gcs] = new_gcs_mavlink_backend(params, uart);
+    _chan[_num_gcs] = new_gcs_mavlink_backend(params, uart); //根据给定的chan_parameters[]中的参数以及获取到的串口生成新的GCS_MAVLINK_XXX（XXX表示具体车辆类型，继承自GCS_MAVLINK）
     if (_chan[_num_gcs] == nullptr) {
         return;
     }
 
-    if (!_chan[_num_gcs]->init(_num_gcs)) {
+    if (!_chan[_num_gcs]->init(_num_gcs)) { //实现接口类的初始化工作，如果初始化失败，就删除这个接口
         delete _chan[_num_gcs];
         _chan[_num_gcs] = nullptr;
         return;
@@ -4873,7 +4876,6 @@ void GCS_MAVLINK::send_rpm() const
 
     rpm->get_rpm(0, rpm1);
     rpm->get_rpm(1, rpm2);
-
     mavlink_msg_rpm_send(
         chan,
         rpm1,
@@ -4960,7 +4962,9 @@ void GCS_MAVLINK::send_attitude_quaternion() const
     if (!ahrs.get_quaternion(quat)) {
         return;
     }
-    const Vector3f omega = ahrs.get_gyro();
+    // const Vector3f omega = ahrs.get_gyro();原为欧拉叫速度
+    // 为便于调参 修改成体轴系下的角速度,如下
+    const Vector3f omega = ahrs.get_gyro_latest();
     const float repr_offseq_q[] {0,0,0,0};  // unused, but probably should correspond to the AHRS view?
     mavlink_msg_attitude_quaternion_send(
         chan,
@@ -5158,6 +5162,10 @@ bool GCS_MAVLINK::try_send_message(const enum ap_message id)
     case MSG_ATTITUDE:
         CHECK_PAYLOAD_SIZE(ATTITUDE);
         send_attitude();
+        // CHECK_PAYLOAD_SIZE(ATTITUDE_TARGET);
+        // send_attitude_target();
+        // CHECK_PAYLOAD_SIZE(ATTITUDE_QUATERNION);
+        // send_attitude_quaternion();
         break;
 
     case MSG_ATTITUDE_QUATERNION:

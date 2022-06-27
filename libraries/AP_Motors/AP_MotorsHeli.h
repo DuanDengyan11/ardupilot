@@ -151,7 +151,7 @@ public:
         USE_LEAKY_I                     = (1<<0),   // 1
     };
 
-    // use leaking integrator management scheme
+    // use leaking integrator management scheme  使用泄漏积分器管理方案 
     bool using_leaky_integrator() const { return heli_option(HeliOption::USE_LEAKY_I); }
 
     // var_info for holding Parameter information

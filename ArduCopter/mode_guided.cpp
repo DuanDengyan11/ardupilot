@@ -36,7 +36,7 @@ struct Guided_Limit {
 bool ModeGuided::init(bool ignore_checks)
 {
     // start in velaccel control mode
-    velaccel_control_start();
+    velaccel_control_start(); //进入mode_guided后，先进入velaccel模式
     guided_vel_target_cms.zero();
     guided_accel_target_cmss.zero();
     send_notification = false;
@@ -51,6 +51,7 @@ bool ModeGuided::init(bool ignore_checks)
 // should be called at 100hz or more
 void ModeGuided::run()
 {
+ 
     // run pause control if the vehicle is paused
     if (_paused) {
         pause_control_run();
@@ -657,7 +658,7 @@ void ModeGuided::takeoff_run()
 // called from guided_run
 void ModeGuided::pos_control_run()
 {
-    // process pilot's yaw input
+    // process pilot's yaw input 偏航有关
     float target_yaw_rate = 0;
 
     if (!copter.failsafe.radio && use_pilot_yaw()) {
@@ -668,14 +669,14 @@ void ModeGuided::pos_control_run()
         }
     }
 
-    // if not armed set throttle to zero and exit immediately
+    // if not armed set throttle to zero and exit immediately 是否解锁
     if (is_disarmed_or_landed()) {
         // do not spool down tradheli when on the ground with motor interlock enabled
         make_safe_ground_handling(copter.is_tradheli() && motors->get_interlock());
         return;
     }
 
-    // calculate terrain adjustments
+    // calculate terrain adjustments 
     float terr_offset = 0.0f;
     if (guided_pos_terrain_alt && !wp_nav->get_terrain_offset(terr_offset)) {
         // failure to set destination can only be because of missing terrain data
@@ -687,10 +688,10 @@ void ModeGuided::pos_control_run()
     motors->set_desired_spool_state(AP_Motors::DesiredSpoolState::THROTTLE_UNLIMITED);
 
     // send position and velocity targets to position controller
-    guided_accel_target_cmss.zero();
-    guided_vel_target_cms.zero();
+    guided_accel_target_cmss.zero(); //加速度
+    guided_vel_target_cms.zero(); //速度
 
-    // stop rotating if no updates received within timeout_ms
+    // stop rotating if no updates received within timeout_ms 偏航有关
     if (millis() - update_time_ms > get_timeout_ms()) {
         if ((auto_yaw.mode() == AUTO_YAW_RATE) || (auto_yaw.mode() == AUTO_YAW_ANGLE_RATE)) {
             auto_yaw.set_rate(0.0f);
@@ -701,7 +702,7 @@ void ModeGuided::pos_control_run()
     if (guided_pos_terrain_alt) {
         pos_offset_z_buffer = MIN(copter.wp_nav->get_terrain_margin() * 100.0, 0.5 * fabsF(guided_pos_target_cm.z));
     }
-    pos_control->input_pos_xyz(guided_pos_target_cm, terr_offset, pos_offset_z_buffer);
+    pos_control->input_pos_xyz(guided_pos_target_cm, terr_offset, pos_offset_z_buffer); //里面有desired
 
     // run position controllers
     pos_control->update_xy_controller();
@@ -799,8 +800,11 @@ void ModeGuided::velaccel_control_run()
     }
 
     // if not armed set throttle to zero and exit immediately
+    // 如果上锁或者在地面，立即退出
     if (is_disarmed_or_landed()) {
         // do not spool down tradheli when on the ground with motor interlock enabled
+        // 若是在地面上的直升机、电机已经在运行， 则不降转速
+        // 加入了init_xy_controller, update_xy_controller, 解决了进入takeoff模式后出现prearm: internal error, L:602 flow_of_ctr的问题，若有更好的办法，再改
         make_safe_ground_handling(copter.is_tradheli() && motors->get_interlock());
         return;
     }

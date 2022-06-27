@@ -256,6 +256,11 @@ const AP_Param::Info Copter::var_info[] = {
     // @Increment: 1
     GSCALAR(throttle_deadzone,  "THR_DZ",    THR_DZ_DEFAULT),
 
+//新加
+    GSCALAR(throttle_midpos, "THR_MID", 600),
+
+    GSCALAR(isyaw, "ISYAW", 1),
+
     // @Param: FLTMODE1
     // @DisplayName: Flight Mode 1
     // @Description: Flight mode when pwm of Flightmode channel(FLTMODE_CH) is <= 1230

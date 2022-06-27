@@ -4,6 +4,7 @@
 #include <AP_Math/AP_Math.h>
 #include "AC_PID.h"
 
+
 const AP_Param::GroupInfo AC_PID::var_info[] = {
     // @Param: P
     // @DisplayName: PID Proportional Gain
@@ -57,7 +58,7 @@ const AP_Param::GroupInfo AC_PID::var_info[] = {
     AP_GROUPINFO("FLTD", 11, AC_PID, _filt_D_hz, AC_PID_DFILT_HZ_DEFAULT),
 
     // @Param: SMAX
-    // @DisplayName: Slew rate limit
+    // @DisplayName: Slew rate limit 转换速率极限
     // @Description: Sets an upper limit on the slew rate produced by the combined P and D gains. If the amplitude of the control action produced by the rate feedback exceeds this value, then the D+P gain is reduced to respect the limit. This limits the amplitude of high frequency oscillations caused by an excessive gain. The limit should be set to no more than 25% of the actuators maximum slew rate to allow for load effects. Note: The gain will not be reduced to less than 10% of the nominal value. A value of zero will disable this feature.
     // @Range: 0 200
     // @Increment: 0.5
@@ -176,9 +177,10 @@ float AC_PID::update_all(float target, float measurement, bool limit)
     _pid_info.D = D_out;
 
     return P_out + _integrator + D_out;
+
 }
 
-//  update_error - set error input to PID controller and calculate outputs
+//  update_error - set error in put to PID controller and calculate outputs
 //  target is set to zero and error is set and filtered
 //  the derivative then is calculated and filtered
 //  the integral is then updated based on the setting of the limit flag

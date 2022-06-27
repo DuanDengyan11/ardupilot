@@ -377,6 +377,9 @@ public:
 
         k_param_vehicle = 257, // vehicle common block of parameters
 
+        k_param_throttle_midpos, // 新增参数，将定点时的死区放在throttle_midpos±dead_zone;而不是将throttle_midpos简单地设置为500。可以根据不同机型选择中立位置，对纵列二架机来说是600
+        k_param_isyaw,
+
         // the k_param_* space is 9-bits in size
         // 511: reserved
     };
@@ -427,6 +430,9 @@ public:
     AP_Int8         failsafe_throttle;
     AP_Int16        failsafe_throttle_value;
     AP_Int16        throttle_deadzone;
+    AP_Int16        throttle_midpos;
+
+    AP_Int8                 isyaw;
 
     // Flight modes
     //
