@@ -290,6 +290,10 @@ const AP_Param::GroupInfo AC_PosControl::var_info[] = {
     // @User: Advanced
     AP_GROUPINFO("_JERK_Z", 11, AC_PosControl, _shaping_jerk_z, POSCONTROL_JERK_Z),
 
+    AP_GROUPINFO("_POS_FILT", 12, AC_PosControl, _pos_filt, 1),
+
+    AP_GROUPINFO("_POS_HZ", 13, AC_PosControl, _filter_pos_hz, 0.1),
+
     AP_GROUPEND
 };
 
@@ -331,8 +335,19 @@ AC_PosControl::AC_PosControl(AP_AHRS_View& ahrs, const AP_InertialNav& inav,
 ///     The jerk limit defines the acceleration error decay in the kinematic path as the system approaches constant acceleration.
 ///     The jerk limit also defines the time taken to achieve the maximum acceleration.
 ///     The function alters the input velocity to be the velocity that the system could reach zero acceleration in the minimum time.
-void AC_PosControl::input_pos_xyz(const Vector3p& pos, float pos_offset_z, float pos_offset_z_buffer)
+void AC_PosControl::input_pos_xyz(Vector3p& pos, float pos_offset_z, float pos_offset_z_buffer)
 {
+
+    //新加对guided_pos_target_cm进行滤波
+    if(_pos_filt)
+    {
+        for (size_t i = 0; i < 3; i++)
+        {
+            pos[i] = pos_last[i] + calc_lowpass_alpha_dt(_dt, _filter_pos_hz) * (pos[i] - pos_last[i]);
+        }
+        pos_last = pos;
+    }
+
     // Terrain following velocity scalar must be calculated before we remove the position offset
     const float offset_z_scaler = pos_offset_z_scaler(pos_offset_z, pos_offset_z_buffer);
 
@@ -385,6 +400,7 @@ void AC_PosControl::input_pos_xyz(const Vector3p& pos, float pos_offset_z, float
     _pos_target.z += _pos_offset_z;
     _vel_desired.z += _vel_offset_z;
     _accel_desired.z += _accel_offset_z;
+
 }
 
 

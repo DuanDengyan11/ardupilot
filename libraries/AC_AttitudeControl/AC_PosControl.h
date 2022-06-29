@@ -58,7 +58,7 @@ public:
     /// input_pos_xyz - calculate a jerk limited path from the current position, velocity and acceleration to an input position.
     ///     The function takes the current position, velocity, and acceleration and calculates the required jerk limited adjustment to the acceleration for the next time dt.
     ///     The kinematic path is constrained by the maximum acceleration and jerk set using the function set_max_speed_accel_xy.
-    void input_pos_xyz(const Vector3p& pos, float pos_offset_z, float pos_offset_z_buffer);
+    void input_pos_xyz(Vector3p& pos, float pos_offset_z, float pos_offset_z_buffer);
 
     /// pos_offset_z_scaler - calculates a multiplier used to reduce the horizontal velocity to allow the z position controller to stay within the provided buffer range
     float pos_offset_z_scaler(float pos_offset_z, float pos_offset_z_buffer) const;
@@ -426,6 +426,9 @@ protected:
     AP_Float        _lean_angle_max;    // Maximum autopilot commanded angle (in degrees). Set to zero for Angle Max
     AP_Float        _shaping_jerk_xy;   // Jerk limit of the xy kinematic path generation in m/s^3 used to determine how quickly the aircraft varies the acceleration target
     AP_Float        _shaping_jerk_z;    // Jerk limit of the z kinematic path generation in m/s^3 used to determine how quickly the aircraft varies the acceleration target
+    AP_Float        _filter_pos_hz;
+    AP_Int8         _pos_filt;
+
     AC_P_2D         _p_pos_xy;          // XY axis position controller to convert distance error to desired velocity
     AC_P_1D         _p_pos_z;           // Z axis position controller to convert altitude error to desired climb rate
     AC_PID_2D       _pid_vel_xy;        // XY axis velocity controller to convert velocity error to desired acceleration
@@ -473,6 +476,9 @@ protected:
 
     // angle max override, if zero then use ANGLE_MAX parameter
     float       _angle_max_override_cd;
+
+    //新加为了滤波
+    Vector3d pos_last;
 
     // return true if on a real vehicle or SITL with lock-step scheduling
     bool has_good_timing(void) const;
