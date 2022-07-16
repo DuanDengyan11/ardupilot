@@ -170,6 +170,9 @@
 
 #include "mode.h"
 
+#define USERHOOK_50HZLOOP userhook_50Hz();
+class Servo_485;
+
 class Copter : public AP_Vehicle {
 public:
     friend class GCS_MAVLINK_Copter;
@@ -897,6 +900,7 @@ private:
     void tuning();
 
     // UserCode.cpp
+    uint16_t U16tU8(uint16_t data16,uint8_t *data8);
     void userhook_init();
     void userhook_FastLoop();
     void userhook_50Hz();
@@ -1003,3 +1007,53 @@ extern Copter copter;
 
 using AP_HAL::millis;
 using AP_HAL::micros;
+
+class Servo_485
+{
+public:
+    Servo_485(){}
+ 
+    ~Servo_485(){}
+
+    //pwm信号转成485协议帧
+    void pwm2rs();
+    //获取当前舵机通道的pwm输出值
+    void GetPwm(uint16_t pwm){this->servo_pwm = pwm;}
+    //帧构成，返回值为可输出帧信号
+    uint8_t* SetFrame();
+    //读取位置帧信号
+    uint8_t* ReadOrder();
+    //设置地址帧
+    void SetAddr(uint8_t addr){this->frame_addr = addr;}
+    //读取接收帧
+    void SetRxFrame(uint8_t* rx);
+    //获取目标角度
+    int16_t getDesAngle(){return desire_angle;}
+    //获取实际角度
+    int16_t getActAngle(){return actual_angle;}
+
+private:
+    
+    uint8_t angle_frame[2];
+
+    uint16_t servo_pwm;
+
+    uint8_t tx_frame[10];//发送帧
+
+    uint8_t rd_frame[10];//读取位置命令帧
+
+    uint8_t rx_frame[10];//接收帧
+
+    uint8_t frame_start = 0XFE;//帧头
+    
+    uint8_t frame_end  = 0X0A;//帧尾
+
+    uint8_t frame_addr;//帧地址
+
+    uint8_t frame_ver = 0XCA;//帧版本
+
+    int16_t desire_angle;
+
+    int16_t actual_angle;
+
+};
